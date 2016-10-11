@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.sql.DataSource;
-import javax.sql.RowSet;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -63,15 +62,25 @@ public class JDBCDepartmentDAO implements DepartmentDAO {
 
 	@Override
 	public Department createDepartment(String departmentName) {
-		
-		String sqlFindNextVal = "SELECT nextVal(seq_department_id)";
+		String sqlFindNextVal = "SELECT nextVal('seq_department_id')";
 		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlFindNextVal);
+		Long id=new Long(0);
 		while(rowSet.next()) {
-			Long id = rowSet.getLong(1);
+			 id = rowSet.getLong(1);
 		}
 		String sqlInsertDepartment = "INSERT INTO department (name, department_id) VALUES (?,?)";
-		//jdbcTemplate.
-		return null;
+		jdbcTemplate.update(sqlInsertDepartment, departmentName,id);
+		return getDepartmentById(id);
+	}
+
+	private Department getDepartmentById(Long id) {
+		SqlRowSet deptRowSet = jdbcTemplate.queryForRowSet("SELECT * FROM department WHERE department_id = ?", id);
+		Department dept = new Department();
+		while(deptRowSet.next()) {
+			dept.setId(deptRowSet.getLong("department_id"));
+			dept.setName(deptRowSet.getString("name"));
+		}
+		return dept;
 	}
 
 }
