@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -14,15 +15,17 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.techelevator.projects.model.Employee;
 import com.techelevator.projects.model.jdbc.JDBCEmployeeDAO;
+import com.techelevator.projects.model.jdbc.JDBCProjectDAO;
 
 public class JDBCEmployeeDAOTest {
 	
-	private static SingleConnectionDataSource dataSource;
-	private JDBCEmployeeDAO dao;
-	private JdbcTemplate jdbcTemplate;
+	JDBCEmployeeDAO dao;
+	protected static SingleConnectionDataSource dataSource;
+	protected JdbcTemplate jdbcTemplate;
 
 	@BeforeClass
 	public static void setupDataSource() {
@@ -40,13 +43,14 @@ public class JDBCEmployeeDAOTest {
 	public static void closeDataSource() throws SQLException {
 		dataSource.destroy();
 	}
-
+	
 	@Before
 	public void setup() {
 		jdbcTemplate = new JdbcTemplate(dataSource);
 		dao = new JDBCEmployeeDAO(dataSource);
+		clearAllEmployees();
 	}
-
+	
 	@After
 	public void rollback() throws SQLException {
 		dataSource.getConnection().rollback();
@@ -54,17 +58,59 @@ public class JDBCEmployeeDAOTest {
 
 	@Test
 	public void dao_returns_correct_number_of_employees() {
-		jdbcTemplate.update("DELETE FROM project_employee");
-		String sqlDeleteAllEmployees = "DELETE FROM employee";
-		jdbcTemplate.update("DELETE FROM employee");
-		Random rand = new Random();
 		int numberOfEmployees = 4;
-		String sqlInsertNewEmployee = "INSERT INTO employee VALUES ?,?,?,?,?,?,?";
 		for (int i = 0; i < numberOfEmployees; i++) {
-			jdbcTemplate.update(sqlDeleteAllEmployees, rand.nextLong(), rand.nextLong(), Integer.toString(rand.nextInt()), Integer.toString(rand.nextInt()), LocalDate.now(), 'F', LocalDate.now());
+			//SqlRowSet = jdbcTemplate.queryForRowSet("SELECT nextval('seq_employee_id')");
+			addEmployeeToDB();
 		}
 		List<Employee> employees = dao.getAllEmployees();
 		assertEquals(numberOfEmployees, employees.size());
+	}
+	
+	@Test
+	public void dao_returns_correct_employee_by_name() {
+		addEmployeeToDB("Vineeta","Mandava");
+		addEmployeeToDB("Sam","Watson");
+		addEmployeeToDB("Leon","Melnick");
+		List<Employee> employee = dao.searchEmployeesByName("Vineeta","Mandava");
+		for(Employee emp: employee) {
+			assertEquals("Vineeta",emp.getFirstName());
+		}
+		
+	}
+	
+	@Test
+	public void dao_returns_correct_employees_with_same_first_name() {
+		addEmployeeToDB("Vineeta","Mandava");
+		addEmployeeToDB("Sam","Watson");
+		addEmployeeToDB("Sam","Jackson");
+		addEmployeeToDB("Leon","Melnick");
+		List<Employee> employee = dao.searchEmployeesByName("Sam","");
+		for(Employee emp: employee) {
+			assertEquals("Sam",emp.getFirstName());
+			}
+		assertEquals(2, employee.size());
+		
+	}
+	
+	@Test
+	private void dao_returns_correct_employee_by_project_id() {
+		addEmployeeToDB("Vineeta","Mandava");
+		addEmployeeToDB("Sam","Watson");
+		addEmployeeToDB("Sam","Jackson");
+		addEmployeeToDB("Leon","Melnick");
+		JDBCProjectDAO pdao = new JDBCProjectDAO(dataSource);
+		//pdao.addEmployeeToProject(new Long(1),new Long(1));
+	}
+	
+	private void addEmployeeToDB() {
+		addEmployeeToDB("John","Smith");
+	}
+	
+	private void addEmployeeToDB(String firstName, String lastName) {
+		Random rand = new Random();
+		String sqlInsertNewEmployee = "INSERT INTO employee (department_id, first_name, last_name, birth_date, gender, hire_date) VALUES (?,?,?,?,?,?)";
+		jdbcTemplate.update(sqlInsertNewEmployee, 1, firstName, lastName, LocalDate.now(), 'F', LocalDate.now());
 	}
 	
 	private Employee getDummyEmployee() {
@@ -82,5 +128,10 @@ public class JDBCEmployeeDAOTest {
 		employee.setGender(gender);
 		employee.setHireDate(hireDate);
 		return employee;
+	}
+	
+	private void clearAllEmployees() {
+		jdbcTemplate.update("DELETE FROM project_employee");
+		jdbcTemplate.update("DELETE FROM employee");
 	}
 }

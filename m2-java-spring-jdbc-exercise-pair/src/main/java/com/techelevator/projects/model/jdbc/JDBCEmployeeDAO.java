@@ -42,7 +42,7 @@ public class JDBCEmployeeDAO implements EmployeeDAO {
 	@Override
 	public List<Employee> searchEmployeesByName(String firstNameSearch, String lastNameSearch) {
 		List<Employee> employeeList= new ArrayList<>();
-		String searchEmployeeByName="select last_name,first_name from employee where last_name=? and first_name=?";
+		String searchEmployeeByName="select last_name,first_name from employee where last_name=? OR first_name=?";
 		SqlRowSet rowSet=jdbcTemplate.queryForRowSet(searchEmployeeByName,lastNameSearch,firstNameSearch);
 		
 		while(rowSet.next()){
@@ -82,8 +82,8 @@ public class JDBCEmployeeDAO implements EmployeeDAO {
 			Employee employee= new Employee();
 			employee.setLastName(rowSet.getString("last_name"));
 			employee.setFirstName(rowSet.getString("first_name"));
+			employee.setId(rowSet.getLong("employee_id"));
 			employeeList.add(employee);
-		
 		}
 		return employeeList;
 	}
@@ -91,13 +91,14 @@ public class JDBCEmployeeDAO implements EmployeeDAO {
 	@Override
 	public List<Employee> getEmployeesByProjectId(Long projectId) {
 		List<Employee> employeeList = new ArrayList<>();
-		String sqlEmployeesByProjectId = "SELECT * FROM employee  WHERE employee_id IN(select employee_id from project_employee where project_id=?)";
+		String sqlEmployeesByProjectId = "SELECT * FROM employee  WHERE employee_id IN (select employee_id from project_employee where project_id=?)";
 		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlEmployeesByProjectId,projectId);
 		
 		while(rowSet.next()) {
 			Employee employee= new Employee();
 			employee.setLastName(rowSet.getString("last_name"));
 			employee.setFirstName(rowSet.getString("first_name"));
+			employee.setId(rowSet.getLong("employee_id"));
 			employeeList.add(employee);
 		}
 		return employeeList;
@@ -105,7 +106,8 @@ public class JDBCEmployeeDAO implements EmployeeDAO {
 
 	@Override
 	public void changeEmployeeDepartment(Long employeeId, Long departmentId) {
-		
+		String sqlUpdateEmployeeDept = "UPDATE employee SET department_id = ? WHERE employee_id = ?";
+		jdbcTemplate.update(sqlUpdateEmployeeDept, departmentId, employeeId);
 	}
 
 }
