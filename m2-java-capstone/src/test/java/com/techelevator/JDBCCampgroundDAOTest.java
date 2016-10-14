@@ -17,6 +17,7 @@ import com.techelevator.parks.Park;
 import com.techelevator.parks.ParkDAO;
 
 public class JDBCCampgroundDAOTest extends DAOIntegrationTest {
+	
 	CampgroundDAO dao;
 
 	@Before

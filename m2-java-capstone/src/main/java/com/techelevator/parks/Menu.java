@@ -14,6 +14,12 @@ public class Menu {
 		this.out = new PrintWriter(output);
 		this.in = new Scanner(input);
 	}
+	
+	public String getSimpleInput(String prompt) {
+		System.out.println(prompt + ">>>");
+		String userInput = in.nextLine();
+		return userInput;
+	}
 
 	public Object getChoiceFromOptions(Object[] options) {
 		Object choice = null;

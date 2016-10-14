@@ -1,5 +1,7 @@
 package com.techelevator.parks;
 
+import java.text.DateFormatSymbols;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 
 public class Campground {
@@ -30,6 +32,10 @@ public class Campground {
 	public int getOpeningTime() {
 		return openingTime;
 	}
+	
+	public String getOpeningMonth() {
+		return new DateFormatSymbols().getMonths()[getOpeningTime()-1];
+	}
 
 	public void setOpeningTime(int openingTime) {
 		this.openingTime = openingTime;
@@ -38,13 +44,17 @@ public class Campground {
 	public int getClosingTime() {
 		return closingTime;
 	}
+	
+	public String getClosingMonth() {
+		return new DateFormatSymbols().getMonths()[getClosingTime()-1];
+	}
 
 	public void setClosingTime(int closingTime) {
 		this.closingTime = closingTime;
 	}
 
 	public String getDailyFee() {
-		return dailyFee;
+		return NumberFormat.getCurrencyInstance().format(Float.parseFloat(dailyFee));
 	}
 
 	public void setDailyFee(String dailyFee) {
