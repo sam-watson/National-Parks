@@ -11,7 +11,7 @@ public class Campground {
 	private String name;
 	private int openingTime;
 	private int closingTime;
-	private String dailyFee;
+	private int dailyFee;
 
 	public Long getId() {
 		return id;
@@ -53,11 +53,11 @@ public class Campground {
 		this.closingTime = closingTime;
 	}
 
-	public String getDailyFee() {
-		return NumberFormat.getCurrencyInstance().format(Float.parseFloat(dailyFee));
+	public int getDailyFee() {
+		return dailyFee;
 	}
 
-	public void setDailyFee(String dailyFee) {
+	public void setDailyFee(int dailyFee) {
 		this.dailyFee = dailyFee;
 	}
 

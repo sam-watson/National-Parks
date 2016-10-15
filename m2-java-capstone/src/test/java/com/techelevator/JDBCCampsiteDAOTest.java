@@ -1,6 +1,8 @@
 package com.techelevator;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+
+import java.time.LocalDate;
 
 import javax.sql.DataSource;
 
@@ -43,6 +45,23 @@ public class JDBCCampsiteDAOTest extends DAOIntegrationTest {
 		addCampsiteToDatabase(2l);
 		addCampsiteToDatabase(2l);
 		assertEquals(3, dao.getAllCampsitesForCampground(1l).size());
+	}
+	
+	@Test
+	public void dao_successfully_filters_out_overlapping_reservations() {
+		addParkToDatabase(1);
+		addCampgroundToDatabase(1l,1l);
+		addCampsiteToDatabase(1l,1l);
+		addCampsiteToDatabase(1l,2l);
+		//DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-mm-dd", Locale.ENGLISH);
+		LocalDate date = LocalDate.parse("2016-10-15");
+		LocalDate date2 = LocalDate.parse("2016-10-17");
+		//addReservationToDatabase(1l,"Cool Site",date , date2);
+		//addReservationToDatabase(1l,"Cool Site",date , date2);
+		//List<Campsite> site1 = addReservationToDatabase(1l,"Cool Site",date , date2);
+		assertEquals(1,dao.getAvailableCampsitesByDate(date, date2).size());
+		
+		
 	}
 	
 

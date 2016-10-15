@@ -110,4 +110,14 @@ public abstract class DAOIntegrationTest {
 		getTemplate().update(sqlInsertCampsite, campgroundId,1);
 	}
 	
+	protected void addReservationToDatabase(Long siteId, String name, LocalDate start, LocalDate end) {
+		String sqlInsertReservation = "INSERT INTO reservation(site_id, name, from_date, to_date) VALUES (?,?,?,?)";
+		getTemplate().update(sqlInsertReservation, siteId, name, start, end);
+	}
+	
+	protected void addCampsiteToDatabase(Long campgroundId,Long campsiteId) {
+		// max_occupancy, accessible, max_rv_length, utilities
+		String sqlInsertCampsite = "INSERT INTO site (campground_id, site_number,site_id) VALUES (?,?,?)";
+		getTemplate().update(sqlInsertCampsite, campgroundId,1,campsiteId);
+	}	
 }

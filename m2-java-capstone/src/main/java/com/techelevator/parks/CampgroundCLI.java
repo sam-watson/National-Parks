@@ -1,6 +1,8 @@
 package com.techelevator.parks;
 
+import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +27,8 @@ public class CampgroundCLI {
 	private ParkDAO parkDAO;
 	private CampgroundDAO campDAO;
 	private CampsiteDAO siteDAO;
+	private ReservationDAO reservationDAO;
+	
 	public static void main(String[] args) {
 		BasicDataSource dataSource = new BasicDataSource();
 		dataSource.setUrl("jdbc:postgresql://localhost:5432/campground");
@@ -32,7 +36,7 @@ public class CampgroundCLI {
 		dataSource.setPassword("postgres1");
 
 		CampgroundCLI application = new CampgroundCLI(dataSource);
-		application.run();
+		application.run(); 
 	}
 
 	public CampgroundCLI(DataSource datasource) {
@@ -42,18 +46,21 @@ public class CampgroundCLI {
 		this.parkDAO = new JDBCParkDAO(datasource);
 		this.campDAO = new JDBCCampgroundDAO(datasource);
 		this.siteDAO = new JDBCCampsiteDAO(datasource);
+		this.reservationDAO = new JDBCReservationDAO(datasource);
 	}
 
 	public void run() {
 		while (true) {
-			printHeading("Select A Park");
+			
 			handleListAndSelectParks();
 		}
 	}
 
 	private void handleListAndSelectParks() {
+		printHeading("Select A Park");
 		List<Park> parks = parkDAO.getAllParks();
 		Park parkChoice = (Park)menu.getChoiceFromOptions(parks.toArray());
+		
 		displayParkInfo(parkChoice);
 		handleParkOption(parkChoice);
 	}
@@ -86,7 +93,7 @@ public class CampgroundCLI {
 	private void handleCampgroundOption(Campground campground) {
 		String choice = (String) menu.getChoiceFromOptions(CAMPGROUND_MENU_OPTIONS);
 		if (choice.equals(CAMPGROUND_MENU_OPTION_SHOW_CAMPSITES)) {
-			displayCampsites(campground);
+			displayCampsites(campground, 1);
 		}
 		if (choice.equals(CAMPGROUND_MENU_OPTION_RESERVATION)) {
 			checkForReservationAvailability(campground);
@@ -96,14 +103,40 @@ public class CampgroundCLI {
 	private void checkForReservationAvailability(Campground campground) {
 		LocalDate arrival = getValidReservationDate("When would you like to arrive? yyyy-mm-dd", campground);
 		LocalDate departure = getValidReservationDate("When would you like to depart? yyyy-mm-dd", campground);
-		
+	    List<Campsite>availableSites = siteDAO.getAvailableCampsitesByDate(arrival, departure).subList(0, 5);
+	    if (availableSites.size() == 0) {
+	    		System.out.println("No sites are available for that time-frame.");
+	    } else {
+	    		System.out.println("Site No.\t Max Occup.\t Accessible? \t Max RV Length \t Utility \t Cost");
+	    		displayCampsites(campground, arrival.until(departure).getDays());
+	    		Long siteNumber = Long.parseLong(menu.getSimpleInput("Select a site: ")); //
+	    		String resName = menu.getSimpleInput("Provide a name for the reservation please");
+	    		Reservation reservation = new Reservation();
+	    		Long siteId = 0l;
+	    		for (Campsite campsite : availableSites) {
+				if (Integer.parseInt(campsite.getSiteNumber()) == siteNumber) {
+					siteId = campsite.getSiteId();
+				}
+			}
+	    		reservation.setSiteId(siteId);
+	    		reservation.setName(resName);
+	    		reservation.setStart(arrival);
+	    		reservation.setEnd(departure);
+	    		int resId = reservationDAO.setReservation(reservation);
+	    		System.out.println("Your reservation has been made. The confirmation number is " + resId);
+	    }
 	}
 	
 	public LocalDate getValidReservationDate(String prompt, Campground campground) {
 		LocalDate date;
 		while(true) {
-			String dateString = menu.getSimpleInput("When would you like to arrive? yyyy-mm-dd");
-			date = LocalDate.parse(dateString);
+			String dateString = menu.getSimpleInput(prompt);
+			try {
+				date = LocalDate.parse(dateString);
+			} catch (DateTimeParseException e) {
+				System.out.println("Please enter a valid date.");
+				continue;
+			}
 			//int year = LocalDate.now().getMonthValue()+1 < campground.getOpeningTime() ? LocalDate.now().getYear() : LocalDate.now().getYear()+1;
 			if (campground.getOpeningTime() > campground.getClosingTime()) {
 				if ( (date.getMonthValue() >= campground.getOpeningTime()) || date.getMonthValue() <= campground.getClosingTime()) {
@@ -126,11 +159,13 @@ public class CampgroundCLI {
 		System.out.println();
 	}
 	
-	private void displayCampsites(Campground campground) {
+	private void displayCampsites(Campground campground, int stayLength) {
 		printHeading("Campsites in " + campground.getName());
 		System.out.println("Site No.\t Max Occup.\t Accessible? \t Max RV Length \t Utility \t Cost");
 		List<Campsite> topTenSites =siteDAO.getAllCampsitesForCampground(campground.getId()).subList(0, 10);
-		String choice = (String) menu.getChoiceFromOptions(topTenSites.toArray());
+		for (Campsite site : topTenSites) {
+			System.out.println(site.toString() + NumberFormat.getCurrencyInstance().format((float)campground.getDailyFee()*stayLength));
+		}
 	}
 
 
