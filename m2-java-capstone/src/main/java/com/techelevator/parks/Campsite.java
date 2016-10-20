@@ -1,5 +1,7 @@
 package com.techelevator.parks;
 
+import java.util.Formatter;
+
 public class Campsite {
 
 	private Long siteId;
@@ -54,6 +56,7 @@ public class Campsite {
 	}
 	
 	public String toString() {
-		return siteNumber +"\t" + maxOccupancy + "\t" + isAccessible + "\t" + maxRVLength + "\t" + hasUtilities;
+		Formatter formatter = new Formatter();
+		return formatter.format("%15s%15s%15s%15s%15s", siteNumber, maxOccupancy, isAccessible, maxRVLength, hasUtilities).toString();
 	}
 }

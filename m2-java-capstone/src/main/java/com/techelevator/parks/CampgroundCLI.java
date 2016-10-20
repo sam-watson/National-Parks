@@ -107,7 +107,6 @@ public class CampgroundCLI {
 	    if (availableSites.size() == 0) {
 	    		System.out.println("No sites are available for that time-frame.");
 	    } else {
-	    		System.out.println("Site No.\t Max Occup.\t Accessible? \t Max RV Length \t Utility \t Cost");
 	    		displayCampsites(campground, arrival.until(departure).getDays());
 	    		Long siteNumber = Long.parseLong(menu.getSimpleInput("Select a site: ")); //
 	    		String resName = menu.getSimpleInput("Provide a name for the reservation please");
@@ -161,10 +160,11 @@ public class CampgroundCLI {
 	
 	private void displayCampsites(Campground campground, int stayLength) {
 		printHeading("Campsites in " + campground.getName());
-		System.out.println("Site No.\t Max Occup.\t Accessible? \t Max RV Length \t Utility \t Cost");
+		System.out.format("%15s%15s%15s%15s%15s%15s", "Site No.", "Max Occup.", "Accessible?", "Max RV Length", "Utility", "Cost");
 		List<Campsite> topTenSites =siteDAO.getAllCampsitesForCampground(campground.getId()).subList(0, 10);
 		for (Campsite site : topTenSites) {
-			System.out.println(site.toString() + NumberFormat.getCurrencyInstance().format((float)campground.getDailyFee()*stayLength));
+			System.out.format("%75s%15s", site.toString(), NumberFormat.getCurrencyInstance().format((float)campground.getDailyFee()*stayLength));
+			System.out.println("");
 		}
 	}
 
