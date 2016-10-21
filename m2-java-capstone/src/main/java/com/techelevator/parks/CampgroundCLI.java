@@ -3,6 +3,7 @@ package com.techelevator.parks;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,37 +94,42 @@ public class CampgroundCLI {
 	private void handleCampgroundOption(Campground campground) {
 		String choice = (String) menu.getChoiceFromOptions(CAMPGROUND_MENU_OPTIONS);
 		if (choice.equals(CAMPGROUND_MENU_OPTION_SHOW_CAMPSITES)) {
-			displayCampsites(campground, 1);
+			displayCampsites(campground, 10, 1);
 		}
 		if (choice.equals(CAMPGROUND_MENU_OPTION_RESERVATION)) {
-			checkForReservationAvailability(campground);
+			handleReservation(campground);
 		}
 	}
 
-	private void checkForReservationAvailability(Campground campground) {
+	private void handleReservation(Campground campground) {
 		LocalDate arrival = getValidReservationDate("When would you like to arrive? yyyy-mm-dd", campground, LocalDate.now());
 		LocalDate departure = getValidReservationDate("When would you like to depart? yyyy-mm-dd", campground, arrival);
-	    List<Campsite>availableSites = siteDAO.getAvailableCampsitesByDate(arrival, departure).subList(0, 5);
+		List<Campsite>availableSites = siteDAO.getAvailableCampsitesByDate(arrival, departure);
 	    if (availableSites.size() == 0) {
-	    		System.out.println("No sites are available for that time-frame.");
+	    	System.out.println("No sites are available for that time-frame.");
 	    } else {
-	    		displayCampsites(campground, arrival.until(departure).getDays());
-	    		Long siteNumber = Long.parseLong(menu.getSimpleInput("Select a site: ")); //
-	    		String resName = menu.getSimpleInput("Provide a name for the reservation please");
-	    		Reservation reservation = new Reservation();
-	    		Long siteId = 0l;
-	    		for (Campsite campsite : availableSites) {
-				if (Integer.parseInt(campsite.getSiteNumber()) == siteNumber) {
-					siteId = campsite.getSiteId();
-				}
-			}
-	    		reservation.setSiteId(siteId);
-	    		reservation.setName(resName);
-	    		reservation.setStart(arrival);
-	    		reservation.setEnd(departure);
-	    		int resId = reservationDAO.setReservation(reservation);
-	    		System.out.println("Your reservation has been made. The confirmation number is " + resId);
+	    	int days = (int)ChronoUnit.DAYS.between(arrival, departure);
+	    	displayCampsites(campground, availableSites, 5, days);
+	    	handleBookReservation(availableSites, arrival, departure);
 	    }
+	}
+
+	private void handleBookReservation(List<Campsite> availableSites, LocalDate arrival, LocalDate departure) {
+		Long siteNumber = Long.parseLong(menu.getSimpleInput("Select a site: ")); //
+		String resName = menu.getSimpleInput("Provide a name for the reservation please");
+		Reservation reservation = new Reservation();
+		Long siteId = 0l;
+		for (Campsite campsite : availableSites) {
+			if (Integer.parseInt(campsite.getSiteNumber()) == siteNumber) {
+				siteId = campsite.getSiteId();
+			}
+		}
+		reservation.setSiteId(siteId);
+		reservation.setName(resName);
+		reservation.setStart(arrival);
+		reservation.setEnd(departure);
+		int resId = reservationDAO.setReservation(reservation);
+		System.out.println("Your reservation has been made. The confirmation number is " + resId);
 	}
 	
 	public LocalDate getValidReservationDate(String prompt, Campground campground, LocalDate dateFloor) {
@@ -162,16 +168,19 @@ public class CampgroundCLI {
 		System.out.println();
 	}
 	
-	private void displayCampsites(Campground campground, int stayLength) {
+	private void displayCampsites(Campground campground, List<Campsite> sites, int displayLength, int stayLength) {
 		printHeading("Campsites in " + campground.getName());
 		System.out.format("%15s%15s%15s%15s%15s%15s", "Site No.", "Max Occup.", "Accessible?", "Max RV Length", "Utility", "Cost\n");
-		List<Campsite> topTenSites =siteDAO.getAllCampsitesForCampground(campground.getId()).subList(0, 10);
+		List<Campsite> topTenSites = sites.subList(0, sites.size() > displayLength ? displayLength : sites.size());
 		for (Campsite site : topTenSites) {
 			System.out.format("%75s%15s", site.toString(), NumberFormat.getCurrencyInstance().format((float)campground.getDailyFee()*stayLength));
 			System.out.println("");
 		}
 	}
-
+	
+	private void displayCampsites(Campground campground, int displayLength, int stayLength) {
+		displayCampsites(campground, siteDAO.getAllCampsitesForCampground(campground.getId()), displayLength, stayLength);
+	}
 
 	private void printHeading(String headingText) {
 		System.out.println("\n\b" + headingText);
