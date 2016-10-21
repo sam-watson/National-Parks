@@ -101,8 +101,8 @@ public class CampgroundCLI {
 	}
 
 	private void checkForReservationAvailability(Campground campground) {
-		LocalDate arrival = getValidReservationDate("When would you like to arrive? yyyy-mm-dd", campground);
-		LocalDate departure = getValidReservationDate("When would you like to depart? yyyy-mm-dd", campground);
+		LocalDate arrival = getValidReservationDate("When would you like to arrive? yyyy-mm-dd", campground, LocalDate.now());
+		LocalDate departure = getValidReservationDate("When would you like to depart? yyyy-mm-dd", campground, arrival);
 	    List<Campsite>availableSites = siteDAO.getAvailableCampsitesByDate(arrival, departure).subList(0, 5);
 	    if (availableSites.size() == 0) {
 	    		System.out.println("No sites are available for that time-frame.");
@@ -126,7 +126,7 @@ public class CampgroundCLI {
 	    }
 	}
 	
-	public LocalDate getValidReservationDate(String prompt, Campground campground) {
+	public LocalDate getValidReservationDate(String prompt, Campground campground, LocalDate dateFloor) {
 		LocalDate date;
 		while(true) {
 			String dateString = menu.getSimpleInput(prompt);
@@ -134,6 +134,10 @@ public class CampgroundCLI {
 				date = LocalDate.parse(dateString);
 			} catch (DateTimeParseException e) {
 				System.out.println("Please enter a valid date.");
+				continue;
+			}
+			if (date.isBefore(dateFloor)) {
+				System.out.println("Time travel is not available at this park.");
 				continue;
 			}
 			//int year = LocalDate.now().getMonthValue()+1 < campground.getOpeningTime() ? LocalDate.now().getYear() : LocalDate.now().getYear()+1;
@@ -160,7 +164,7 @@ public class CampgroundCLI {
 	
 	private void displayCampsites(Campground campground, int stayLength) {
 		printHeading("Campsites in " + campground.getName());
-		System.out.format("%15s%15s%15s%15s%15s%15s", "Site No.", "Max Occup.", "Accessible?", "Max RV Length", "Utility", "Cost");
+		System.out.format("%15s%15s%15s%15s%15s%15s", "Site No.", "Max Occup.", "Accessible?", "Max RV Length", "Utility", "Cost\n");
 		List<Campsite> topTenSites =siteDAO.getAllCampsitesForCampground(campground.getId()).subList(0, 10);
 		for (Campsite site : topTenSites) {
 			System.out.format("%75s%15s", site.toString(), NumberFormat.getCurrencyInstance().format((float)campground.getDailyFee()*stayLength));
