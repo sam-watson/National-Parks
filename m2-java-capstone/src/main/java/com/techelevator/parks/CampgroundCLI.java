@@ -104,7 +104,7 @@ public class CampgroundCLI {
 	private void handleReservation(Campground campground) {
 		LocalDate arrival = getValidReservationDate("When would you like to arrive? yyyy-mm-dd", campground, LocalDate.now());
 		LocalDate departure = getValidReservationDate("When would you like to depart? yyyy-mm-dd", campground, arrival);
-		List<Campsite>availableSites = siteDAO.getAvailableCampsitesByDate(arrival, departure);
+		List<Campsite>availableSites = siteDAO.getAvailableCampsitesByDate(arrival, departure, campground.getId());
 	    if (availableSites.size() == 0) {
 	    	System.out.println("No sites are available for that time-frame.");
 	    } else {

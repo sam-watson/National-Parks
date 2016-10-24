@@ -59,10 +59,8 @@ public class JDBCCampsiteDAOTest extends DAOIntegrationTest {
 		//addReservationToDatabase(1l,"Cool Site",date , date2);
 		//addReservationToDatabase(1l,"Cool Site",date , date2);
 		//List<Campsite> site1 = addReservationToDatabase(1l,"Cool Site",date , date2);
-		assertEquals(1,dao.getAvailableCampsitesByDate(date, date2).size());
-		
-		
+		assertEquals(1,dao.getAvailableCampsitesByDate(date, date2, 1l).size());
 	}
 	
-
+	
 }

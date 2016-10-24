@@ -8,6 +8,6 @@ public interface CampsiteDAO {
 	//public List<Campsite> getAllCampsites();
 
 	public List<Campsite> getAllCampsitesForCampground(Long campgroundId);
-	public List<Campsite> getAvailableCampsitesByDate(LocalDate start, LocalDate end);
+	public List<Campsite> getAvailableCampsitesByDate(LocalDate start, LocalDate end, Long campgroundId);
 	
 }

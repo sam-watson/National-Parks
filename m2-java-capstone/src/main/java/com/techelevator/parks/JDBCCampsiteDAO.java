@@ -43,17 +43,18 @@ public class JDBCCampsiteDAO implements CampsiteDAO {
 		return site;
 	}
 	
-	public List<Campsite> getAvailableCampsitesByDate(LocalDate start, LocalDate end) {
+	public List<Campsite> getAvailableCampsitesByDate(LocalDate start, LocalDate end, Long campgroundId) {
 		List<Campsite> availableSites = new ArrayList<>();
 		String sqlSelectSitesByDate = "SELECT s.site_id, campground_id, s.site_number, max_occupancy, accessible, max_rv_length, utilities "
 				+ "FROM site s FULL OUTER JOIN reservation r ON s.site_id = r.site_id "
 				+ "WHERE ( from_date, to_date) OVERLAPS (?, ?) = false "
+				+ "AND campground_id = ? "
 				+ "GROUP BY s.site_id, campground_id, s.site_number, max_occupancy, accessible, max_rv_length, utilities  ORDER BY s.site_number";
 				
 //				"SELECT * FROM site s FULL OUTER JOIN reservation r ON s.site_id = r.site_id WHERE "
 //				+ " ( from_date, to_date) OVERLAPS ( ?,  ?) = false";
 		
-		SqlRowSet rows = template.queryForRowSet(sqlSelectSitesByDate, start, end);
+		SqlRowSet rows = template.queryForRowSet(sqlSelectSitesByDate, start, end, campgroundId);
 		while (rows.next()) {
 			Campsite site = createCampsite(rows);
 			availableSites.add(site);
