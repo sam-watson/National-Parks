@@ -19,6 +19,8 @@ public class JDBCReservationDAO implements ReservationDAO {
 		template.update(sqlInsertReservationIntoDB, res.getSiteId(), res.getName(), res.getStart(), res.getEnd());
 		return findReservation(res);
 	}
+	
+	@Override
 	public int findReservation(Reservation res) {
 		String sqlSelectMatchingReservation = "SELECT * FROM reservation WHERE site_id=? AND name=? AND from_date=? AND to_date=?";
 		SqlRowSet row = template.queryForRowSet(sqlSelectMatchingReservation, res.getSiteId(), res.getName(), res.getStart(), res.getEnd());

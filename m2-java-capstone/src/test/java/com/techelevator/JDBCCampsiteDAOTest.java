@@ -48,19 +48,38 @@ public class JDBCCampsiteDAOTest extends DAOIntegrationTest {
 	}
 	
 	@Test
-	public void dao_successfully_filters_out_overlapping_reservations() {
+	public void dao_successfully_returns_sites_without_reservations() {
 		addParkToDatabase(1);
 		addCampgroundToDatabase(1l,1l);
 		addCampsiteToDatabase(1l,1l);
 		addCampsiteToDatabase(1l,2l);
-		//DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-mm-dd", Locale.ENGLISH);
-		LocalDate date = LocalDate.parse("2016-10-15");
+		LocalDate date1 = LocalDate.parse("2016-10-15");
 		LocalDate date2 = LocalDate.parse("2016-10-17");
-		//addReservationToDatabase(1l,"Cool Site",date , date2);
-		//addReservationToDatabase(1l,"Cool Site",date , date2);
-		//List<Campsite> site1 = addReservationToDatabase(1l,"Cool Site",date , date2);
-		assertEquals(1,dao.getAvailableCampsitesByDate(date, date2, 1l).size());
+		assertEquals(2, dao.getAvailableCampsitesByDate(date1, date2, 1l).size());
 	}
 	
+	@Test
+	public void dao_successfully_filters_out_site_with_identical_reservations() {
+		addParkToDatabase(1);
+		addCampgroundToDatabase(1l,1l);
+		addCampsiteToDatabase(1l,1l);
+		addCampsiteToDatabase(1l,2l);
+		LocalDate date1 = LocalDate.parse("2016-10-15");
+		LocalDate date2 = LocalDate.parse("2016-10-17");
+		addReservationToDatabase(1l, "Cool Site", date1, date2);
+		assertEquals(1, dao.getAvailableCampsitesByDate(date1, date2, 1l).size());
+	}
+	
+	@Test
+	public void dao_successfully_filters_out_site_with_overlapping_reservations() {
+		addParkToDatabase(1);
+		addCampgroundToDatabase(1l,1l);
+		addCampsiteToDatabase(1l,1l);
+		addCampsiteToDatabase(1l,2l);
+		LocalDate date1 = LocalDate.parse("2016-10-15");
+		LocalDate date2 = LocalDate.parse("2016-10-17");
+		addReservationToDatabase(1l, "Cool Site", date1, date2);
+		assertEquals(1, dao.getAvailableCampsitesByDate(date1.plusDays(1), date2.plusDays(1), 1l).size());
+	}
 	
 }

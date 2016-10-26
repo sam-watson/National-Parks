@@ -99,7 +99,7 @@ public abstract class DAOIntegrationTest {
 		getTemplate().update(sqlInsertCampground, parkId, "Campground", 01, 01, 1);
 	}
 	
-	protected void addCampgroundToDatabase(Long parkId,Long campgroundId) {
+	protected void addCampgroundToDatabase(Long parkId, Long campgroundId) {
 		String sqlInsertCampground = "INSERT INTO campground (campground_id, park_id, name, open_from_mm, open_to_mm, daily_fee) VALUES (?,?,?,?,?,?)";
 		getTemplate().update(sqlInsertCampground,campgroundId, parkId, "Campground", 01, 01, 1);
 	}

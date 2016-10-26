@@ -20,7 +20,7 @@ public class JDBCCampgroundDAO implements CampgroundDAO {
 	@Override
 	public List<Campground> getAllCampgrounds(Park park) {
 		List<Campground> campgrounds=new ArrayList<>();
-		String sqlSelectAllCampGroundsByParkId="SELECT * FROM campGround where park_id=?";
+		String sqlSelectAllCampGroundsByParkId="SELECT * FROM campground where park_id = ?";
 		SqlRowSet rowsReturned= template.queryForRowSet(sqlSelectAllCampGroundsByParkId,park.getId());
 		while(rowsReturned.next()){
 			Campground camp= new Campground();

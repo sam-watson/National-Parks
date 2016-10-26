@@ -21,12 +21,13 @@ public class JDBCCampsiteDAO implements CampsiteDAO {
 	@Override
 	public List<Campsite> getAllCampsitesForCampground(Long campgroundId) {
 		List<Campsite> sites = new ArrayList<>();
-		String sqlSelectAllCampsitesForCampground = "SELECT * FROM site s JOIN campground c ON s.campground_id = c.campground_id WHERE s.campground_id = ?";
+		String sqlSelectAllCampsitesForCampground = 
+				"SELECT * FROM site s JOIN campground c ON s.campground_id = c.campground_id "
+				+ "WHERE s.campground_id = ?";
 		SqlRowSet row = template.queryForRowSet(sqlSelectAllCampsitesForCampground,campgroundId);
 		while(row.next()) {
 			Campsite site = createCampsite(row);
 			sites.add(site);
-
 		}
 		return sites ;
 	}
@@ -45,21 +46,21 @@ public class JDBCCampsiteDAO implements CampsiteDAO {
 	
 	public List<Campsite> getAvailableCampsitesByDate(LocalDate start, LocalDate end, Long campgroundId) {
 		List<Campsite> availableSites = new ArrayList<>();
-		String sqlSelectSitesByDate = "SELECT s.site_id, campground_id, s.site_number, max_occupancy, accessible, max_rv_length, utilities "
+		String sqlSelectSitesByDate = 
+				//ridiculous query statement
+				"SELECT s.site_id, campground_id, s.site_number, max_occupancy, accessible, max_rv_length, utilities "
 				+ "FROM site s FULL OUTER JOIN reservation r ON s.site_id = r.site_id "
-				+ "WHERE ( from_date, to_date) OVERLAPS (?, ?) = false "
+				+ "WHERE (from_date, to_date) OVERLAPS (?, ?) = false "
+				+ "OR from_date IS NULL "
 				+ "AND campground_id = ? "
-				+ "GROUP BY s.site_id, campground_id, s.site_number, max_occupancy, accessible, max_rv_length, utilities  ORDER BY s.site_number";
-				
-//				"SELECT * FROM site s FULL OUTER JOIN reservation r ON s.site_id = r.site_id WHERE "
-//				+ " ( from_date, to_date) OVERLAPS ( ?,  ?) = false";
-		
+				+ "GROUP BY s.site_id, campground_id, s.site_number, max_occupancy, accessible, max_rv_length, utilities  "
+				+ "ORDER BY s.site_number";
 		SqlRowSet rows = template.queryForRowSet(sqlSelectSitesByDate, start, end, campgroundId);
 		while (rows.next()) {
 			Campsite site = createCampsite(rows);
 			availableSites.add(site);
 		}
-		
 		return availableSites;
 	}
+	
 }
